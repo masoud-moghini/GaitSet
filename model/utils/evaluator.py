@@ -39,6 +39,11 @@ def evaluation(data, config):
                     pseq_mask = np.isin(seq_type, probe_seq) & np.isin(view, [probe_view])
                     probe_x = feature[pseq_mask, :]
                     probe_y = label[pseq_mask]
+                    print(f'=====PRINT VALUES OF EVALUATION======')
+                    print(f'view:{view}')
+                    print(f'p is :{p}\nseq_type:{seq_type}\ngallary_seq:{gallary_seq}\tprobe_seq:{probe_seq}')
+                    print(f'prove_view:{probe_view}\ngallary_view:{gallary_view}')
+                    print(f'probe_x:{probe_x}\nprobe_y:{probe_y}')
 
                     dist = cuda_dist(probe_x, gallery_x)
                     idx = dist.sort(1)[1].cpu().numpy()
