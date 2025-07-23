@@ -12,43 +12,108 @@ def cuda_dist(x, y):
     return dist
 
 
-def evaluation(data, config):
-    dataset = config['dataset'].split('-')[0]
+def evaluation(data, config, probe_idx=None, top_k=5):
+    """
+    If probe_idx is None:
+        run full multi-view, multi-seq rank-k evaluation as before.
+    Else:
+        compute the rank of the single probe sample at probe_idx
+        against a gallery of all other samples.
+    """
+    # Unpack inputs
     feature, view, seq_type, label = data
-    label = np.array(label)
-    view_list = list(set(view))
-    view_list.sort()
-    view_num = len(view_list)
-    sample_num = len(feature)
+    feature = np.asarray(feature)
+    label   = np.asarray(label)
+    sample_num = feature.shape[0]
+    print(len(feature))
+    # Quick helper: full original evaluation
+    def full_eval():
+        dataset = config['dataset'].split('-')[0]
+        probe_seq_dict = {
+            'CASIA': [['nm-05', 'nm-06'], ['bg-01', 'bg-02'], ['cl-01', 'cl-02']],
+            'OUMVLP': [['00']]
+        }
+        gallery_seq_dict = {
+            'CASIA': [['nm-01','nm-02','nm-03','nm-04']],
+            'OUMVLP': [['01']]
+        }
+        view_list = sorted(set(view))
+        num_rank = top_k
+        acc = np.zeros([
+            len(probe_seq_dict[dataset]),
+            len(view_list),
+            len(view_list),
+            num_rank
+        ])
+        for p, probe_seq in enumerate(probe_seq_dict[dataset]):
+            for gallery_seq in gallery_seq_dict[dataset]:
+                for v1, probe_view in enumerate(view_list):
+                    for v2, gallery_view in enumerate(view_list):
+                        gmask = np.isin(seq_type, gallery_seq) & (view == gallery_view)
+                        pmask = np.isin(seq_type, probe_seq)  & (view == probe_view)
+                        gallery_x = feature[gmask]
+                        gallery_y = label[gmask]
+                        probe_x   = feature[pmask]
+                        probe_y   = label[pmask]
 
-    probe_seq_dict = {'CASIA': [['nm-05', 'nm-06'], ['bg-01', 'bg-02'], ['cl-01', 'cl-02']],
-                      'OUMVLP': [['00']]}
-    gallery_seq_dict = {'CASIA': [['nm-01', 'nm-02', 'nm-03', 'nm-04']],
-                        'OUMVLP': [['01']]}
+                        # Compute distances on GPU
+                        gx = torch.from_numpy(gallery_x).float().cuda()
+                        px = torch.from_numpy(probe_x).float().cuda()
+                        dist = cuda_dist(px, gx)                              # [P, G]
+                        idx  = dist.sort(dim=1)[1].cpu().numpy()              # [P, G]
 
-    num_rank = 5
-    acc = np.zeros([len(probe_seq_dict[dataset]), view_num, view_num, num_rank])
-    for (p, probe_seq) in enumerate(probe_seq_dict[dataset]):
-        for gallery_seq in gallery_seq_dict[dataset]:
-            for (v1, probe_view) in enumerate(view_list):
-                for (v2, gallery_view) in enumerate(view_list):
-                    gseq_mask = np.isin(seq_type, gallery_seq) & np.isin(view, [gallery_view])
-                    gallery_x = feature[gseq_mask, :]
-                    gallery_y = label[gseq_mask]
+                        # rank-k accuracy
+                        hits = (probe_y[:,None] == gallery_y[idx[:, :num_rank]])
+                        cum  = np.cumsum(hits, axis=1) > 0
+                        acc[p, v1, v2, :] = np.round(
+                            cum.sum(axis=0) * 100 / probe_x.shape[0], 2
+                        )
+        return acc
 
-                    pseq_mask = np.isin(seq_type, probe_seq) & np.isin(view, [probe_view])
-                    probe_x = feature[pseq_mask, :]
-                    probe_y = label[pseq_mask]
-                    print(f'=====PRINT VALUES OF EVALUATION======')
-                    print(f'view:{view}')
-                    print(f'p is :{p}\nseq_type:{seq_type}\ngallary_seq:{gallary_seq}\tprobe_seq:{probe_seq}')
-                    print(f'prove_view:{probe_view}\ngallary_view:{gallary_view}')
-                    print(f'probe_x:{probe_x}\nprobe_y:{probe_y}')
+    # If no probe_idx given, do the full evaluation
+    if probe_idx is None:
+        print(f' its null ')
+        return full_eval()
 
-                    dist = cuda_dist(probe_x, gallery_x)
-                    idx = dist.sort(1)[1].cpu().numpy()
-                    acc[p, v1, v2, :] = np.round(
-                        np.sum(np.cumsum(np.reshape(probe_y, [-1, 1]) == gallery_y[idx[:, 0:num_rank]], 1) > 0,
-                               0) * 100 / dist.shape[0], 2)
+    # ---- Per-index rank-k computation ----
+    # Build probe sample
+    px = feature[probe_idx:probe_idx+1]  # [1, D]
+    py = label[probe_idx]
 
-    return acc
+
+    # Build gallery (exclude the probe itself)
+    mask = np.arange(sample_num) != probe_idx
+    gx = feature[mask]               # [N-1, D]
+    gy = label[mask]
+
+    # Compute distances and sort
+    dist = cuda_dist(px, gx)                                              # [1, N-1]
+    sorted_idx = dist.sort(dim=1)[1].cpu().numpy().ravel()                # [N-1]
+
+
+    # Find the 1-based rank of the first correct match
+    matches = np.where(gy[sorted_idx] == py)[0]
+    print(f'py = {py}')
+    print(f'sample_num = {sample_num}')
+    print(f'gy = {gy}')
+    print(f'sorted_idx = {sorted_idx}')
+    print(f'matches = {matches}')
+
+    if matches.size == 0:
+        # no gallery sample matches label (rare if you excluded all of that ID)
+        rank = None
+    else:
+        rank = int(matches[0]) + 1
+
+    # Top-k gallery indices & their labels
+    topk = sorted_idx[:top_k]
+    topk_labels = gy[topk]
+
+    return {
+        'probe_idx': probe_idx,
+        'probe_label': int(py),
+        'rank': rank,
+        'in_topk': (rank is not None and rank <= top_k),
+        'topk_indices': topk.tolist(),
+        'topk_labels': topk_labels.tolist()
+    }
