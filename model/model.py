@@ -4,17 +4,17 @@ import os.path as osp
 import random
 import sys
 from datetime import datetime
-
+import random
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.autograd as autograd
 import torch.optim as optim
 import torch.utils.data as tordata
-
+import xarray as xr
 from .network import TripletLoss, SetNet
 from .utils import TripletSampler
-
+from scipy.ndimage import rotate
 
 class Model:
     def __init__(self,
@@ -73,16 +73,45 @@ class Model:
 
         self.sample_type = 'all'
 
+    def flip_and_normalize(self,da: xr.DataArray,mean: float,std: float,angle: int) -> xr.DataArray:
+      """
+      Args:
+          da: DataArray of shape (frame, img_y, img_x), dtype uint8 or float32.
+          mean: Scalar mean for normalization (same units as da).
+          std: Scalar std for normalization.
+
+      Returns:
+          DataArray of shape (frame, img_y, img_x), dtype float32,
+          horizontally flipped and normalized: (x - mean) / std.
+      """
+      # 1. Pull out raw array and cast to float32
+      arr = da.values.astype(np.float32)
+
+      # 2. Flip horizontally along the img_x axis
+      modified = arr[..., ::-1] if random.random() > .5 else arr
+      rotated = np.array([
+        rotate(frame, angle, reshape=False, order=1, mode='reflect') if random.random() > .5 else frame
+        for frame in modified
+      ])
+      # 3. Normalize
+      normalized = (modified - mean) / std
+
+      # 4. Rebuild DataArray with original coords & dims
+      return xr.DataArray(
+          normalized,
+          coords=da.coords,
+          dims=da.dims,
+          name=da.name
+      )
     def collate_fn(self, batch):
         batch_size = len(batch)
         feature_num = len(batch[0][0])
-        seqs = [batch[i][0] for i in range(batch_size)]
+        seqs = [[self.flip_and_normalize(frame_set,.254,.487,30) for frame_set in  batch[i][0]] for i in range(batch_size)]
         frame_sets = [batch[i][1] for i in range(batch_size)]
         view = [batch[i][2] for i in range(batch_size)]
         seq_type = [batch[i][3] for i in range(batch_size)]
         label = [batch[i][4] for i in range(batch_size)]
         batch = [seqs, view, seq_type, label, None]
-
         def select_frame(index):
             sample = seqs[index]
             frame_set = frame_sets[index]
