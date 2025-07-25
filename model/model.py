@@ -94,7 +94,7 @@ class Model:
         for frame in modified
       ])
       # 3. Normalize
-      normalized = (modified - mean) / std
+      normalized = (rotated - mean) / std
 
       # 4. Rebuild DataArray with original coords & dims
       return xr.DataArray(
