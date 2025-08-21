@@ -95,7 +95,7 @@ def evaluation(data, config, probe_idx=None, top_k=5):
     matches = np.where(gy[sorted_idx] == py)[0]
     print(f'py = {py}')
     print(f'sample_num = {sample_num}')
-    print('sorted_idx = ', {sorted_idx[i]: gy[sorted_idx] for i in range(len(sorted_idx))})
+    print('sorted_idx = ', {sorted_idx[i]: gy[sorted_idx][i] for i in range(len(sorted_idx))})
     print(f'matches = {matches}')
 
     if matches.size == 0:
