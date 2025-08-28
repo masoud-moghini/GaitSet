@@ -77,11 +77,12 @@ class Model:
         batch_size = len(batch)
         feature_num = len(batch[0][0])
         seqs = [batch[i][0] for i in range(batch_size)]
+        paths = [batch[i][0][0] for i in range(batch_size)]
         frame_sets = [batch[i][1] for i in range(batch_size)]
         view = [batch[i][2] for i in range(batch_size)]
         seq_type = [batch[i][3] for i in range(batch_size)]
         label = [batch[i][4] for i in range(batch_size)]
-        batch = [seqs, view, seq_type, label, None]
+        batch = [paths,seqs, view, seq_type, label, None]
 
         def select_frame(index):
             sample = seqs[index]
@@ -123,9 +124,9 @@ class Model:
                                           constant_values=0)
                                    for _ in range(gpu_num)])
                     for j in range(feature_num)]
-            batch[4] = np.asarray(batch_frames)
+            batch[5] = np.asarray(batch_frames)
 
-        batch[0] = seqs
+        batch[1] = seqs
         return batch
 
     def fit(self):
