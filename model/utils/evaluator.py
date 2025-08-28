@@ -21,7 +21,8 @@ def evaluation(data, config, probe_idx=None, top_k=5):
         against a gallery of all other samples.
     """
     # Unpack inputs
-    feature, view, seq_type, label = data
+    path,feature, view, seq_type, label = data
+    path = path.reshape(-1)
     feature = np.asarray(feature)
     label   = np.asarray(label)
     sample_num = feature.shape[0]
@@ -75,6 +76,17 @@ def evaluation(data, config, probe_idx=None, top_k=5):
         print(f' its null ')
         return full_eval()
 
+    elif probe_idx < 0:
+        for i in range(-probe_idx):
+            px = feature[i:i+1]
+            py = label[i]
+            other_probes = np.arrange(sample_num) != i
+            gx = feature[other_probes]
+            list_of_feature_distances = cuda_dist(px, gx)
+            sorted_idx = list_of_feature_distances.sort(dim=1)[1].cpu().numpy().ravel()                # [N-1]
+            index_of_first_predict = sorted_idx[0]
+            predicted_label = label[index_of_first_predict]
+            print(f'path = {path[i]} py = {py}, predicted_label = {predicted_label}, correct = {py == predicted_label}')
     # ---- Per-index rank-k computation ----
     # Build probe sample
     px = feature[probe_idx:probe_idx+1]  # [1, D]

@@ -228,14 +228,14 @@ class Model:
             sampler=tordata.sampler.SequentialSampler(source),
             collate_fn=self.collate_fn,
             num_workers=self.num_workers)
-
+        path_list = list()
         feature_list = list()
         view_list = list()
         seq_type_list = list()
         label_list = list()
 
         for i, x in enumerate(data_loader):
-            seq, view, seq_type, label, batch_frame = x
+            (path,seq), view, seq_type, label, batch_frame = x
             for j in range(len(seq)):
                 seq[j] = self.np2var(seq[j]).float()
             if batch_frame is not None:
@@ -244,12 +244,13 @@ class Model:
 
             feature, _ = self.encoder(*seq, batch_frame)
             n, num_bin, _ = feature.size()
+            path_list.append(path)
             feature_list.append(feature.view(n, -1).data.cpu().numpy())
             view_list += view
             seq_type_list += seq_type
             label_list += label
 
-        return np.concatenate(feature_list, 0), view_list, seq_type_list, label_list
+        return np.concatenate(path_list,0),np.concatenate(feature_list, 0), view_list, seq_type_list, label_list
 
     def save(self):
         os.makedirs(osp.join('checkpoint', self.model_name), exist_ok=True)
