@@ -56,11 +56,11 @@ class DataSet(tordata.Dataset):
         # pose sequence sampling
         if not self.cache:
             data = [self.__loader__(_path) for _path in self.seq_dir[index]]
-            frame_set = [set(feature.coords['frame'].values.tolist()) for feature in data]
+            frame_set = [set(feature.coords['frame'].values.tolist()) for (feature,path) in data]
             frame_set = list(set.intersection(*frame_set))
         elif self.data[index] is None:
             data = [self.__loader__(_path) for _path in self.seq_dir[index]]
-            frame_set = [set(feature.coords['frame'].values.tolist()) for feature in data]
+            frame_set = [set(feature.coords['frame'].values.tolist()) for (feature,path) in data]
             frame_set = list(set.intersection(*frame_set))
             self.data[index] = data
             self.frame_set[index] = frame_set
