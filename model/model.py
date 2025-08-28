@@ -90,7 +90,7 @@ class Model:
                 frame_id_list = random.choices(frame_set, k=self.frame_num)
                 _ = [feature.loc[frame_id_list].values for (_,feature) in sample]
             else:
-                _ = [feature.values for feature in sample]
+                _ = [feature.values for (_,feature) in sample]
             return _
 
         seqs = list(map(select_frame, range(len(seqs))))
