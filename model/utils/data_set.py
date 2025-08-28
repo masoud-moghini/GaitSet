@@ -84,11 +84,10 @@ class DataSet(tordata.Dataset):
                       if osp.isfile(osp.join(flie_path, _img_path))]
         data_dict = xr.DataArray(
             frame_list,
-            path_list = path_list,
             coords={'frame': num_list},
             dims=['frame', 'img_y', 'img_x'],
         )
-        return data_dict
+        return data_dict,path_list
 
     def __len__(self):
         return len(self.label)
