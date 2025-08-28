@@ -81,16 +81,17 @@ class Model:
         view = [batch[i][2] for i in range(batch_size)]
         seq_type = [batch[i][3] for i in range(batch_size)]
         label = [batch[i][4] for i in range(batch_size)]
-        batch = [seqs, view, seq_type, label, None]
+        paths = list(map(lambda x: x[1], seqs))
+        batch = [seqs, view, seq_type, label,paths, None]
 
         def select_frame(index):
             sample = seqs[index]
             frame_set = frame_sets[index]
             if self.sample_type == 'random':
                 frame_id_list = random.choices(frame_set, k=self.frame_num)
-                _ = [feature.loc[frame_id_list].values for feature in sample]
+                _ = [feature.loc[frame_id_list].values for (feature,_) in sample]
             else:
-                _ = [feature.values for feature in sample]
+                _ = [feature.values for (feature,_) in sample]
             return _
 
         seqs = list(map(select_frame, range(len(seqs))))
@@ -123,9 +124,9 @@ class Model:
                                           constant_values=0)
                                    for _ in range(gpu_num)])
                     for j in range(feature_num)]
-            batch[5] = np.asarray(batch_frames)
+            batch[4] = np.asarray(batch_frames)
 
-        batch[1] = seqs
+        batch[0] = seqs
         return batch
 
     def fit(self):
@@ -230,7 +231,6 @@ class Model:
             sampler=tordata.sampler.SequentialSampler(source),
             collate_fn=self.collate_fn,
             num_workers=self.num_workers)
-        path_list = list()
         feature_list = list()
         view_list = list()
         seq_type_list = list()
