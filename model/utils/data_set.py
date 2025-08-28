@@ -48,9 +48,11 @@ class DataSet(tordata.Dataset):
         return self.__getitem__(index)
 
     def __loader__(self, path):
-        return self.img2xarray(
-            path)[:, :, self.cut_padding:-self.cut_padding].astype(
+        img2arraydata = self.img2xarray(path)
+        img2arraypadded = img2arraydata[0][:, :, self.cut_padding:-self.cut_padding].astype(
             'float32') / 255.0
+        img2arraypaths = img2arraydata[1]
+        return img2arraypadded,img2arraypaths
 
     def __getitem__(self, index):
         # pose sequence sampling
