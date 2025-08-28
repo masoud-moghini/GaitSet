@@ -236,7 +236,7 @@ class Model:
         label_list = list()
 
         for i, x in enumerate(data_loader):
-            (path,seq), view, seq_type, label, batch_frame = x
+            path,seq, view, seq_type, label, batch_frame = x
             for j in range(len(seq)):
                 seq[j] = self.np2var(seq[j]).float()
             if batch_frame is not None:
