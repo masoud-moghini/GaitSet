@@ -81,7 +81,7 @@ class Model:
         view = [batch[i][2] for i in range(batch_size)]
         seq_type = [batch[i][3] for i in range(batch_size)]
         label = [batch[i][4] for i in range(batch_size)]
-        paths = list(map(lambda x: x[1], seqs))
+        paths = list(map(lambda x: x[0][1] , seqs))
         batch = [seqs, view, seq_type, label,paths, None]
 
         def select_frame(index):
