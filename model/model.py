@@ -77,21 +77,20 @@ class Model:
         batch_size = len(batch)
         feature_num = len(batch[0][0])
         seqs = [batch[i][0] for i in range(batch_size)]
-        paths = [batch[i][0][0] for i in range(batch_size)]
         frame_sets = [batch[i][1] for i in range(batch_size)]
         view = [batch[i][2] for i in range(batch_size)]
         seq_type = [batch[i][3] for i in range(batch_size)]
         label = [batch[i][4] for i in range(batch_size)]
-        batch = [paths,seqs, view, seq_type, label, None]
+        batch = [seqs, view, seq_type, label, None]
 
         def select_frame(index):
             sample = seqs[index]
             frame_set = frame_sets[index]
             if self.sample_type == 'random':
                 frame_id_list = random.choices(frame_set, k=self.frame_num)
-                _ = [feature.loc[frame_id_list].values for (_,feature) in sample]
+                _ = [feature.loc[frame_id_list].values for feature in sample]
             else:
-                _ = [feature.values for (_,feature) in sample]
+                _ = [feature.values for feature in sample]
             return _
 
         seqs = list(map(select_frame, range(len(seqs))))
@@ -223,6 +222,8 @@ class Model:
         self.encoder.eval()
         source = self.test_source if flag == 'test' else self.train_source
         self.sample_type = 'all'
+        print('printing source [5] for sample')
+        print(source[5])
         data_loader = tordata.DataLoader(
             dataset=source,
             batch_size=batch_size,
@@ -236,7 +237,7 @@ class Model:
         label_list = list()
 
         for i, x in enumerate(data_loader):
-            path,seq, view, seq_type, label, batch_frame = x
+            seq, view, seq_type, label, batch_frame = x
             for j in range(len(seq)):
                 seq[j] = self.np2var(seq[j]).float()
             if batch_frame is not None:
@@ -245,13 +246,11 @@ class Model:
 
             feature, _ = self.encoder(*seq, batch_frame)
             n, num_bin, _ = feature.size()
-            path_list.append(path)
             feature_list.append(feature.view(n, -1).data.cpu().numpy())
             view_list += view
             seq_type_list += seq_type
             label_list += label
-
-        return np.concatenate(path_list,0),np.concatenate(feature_list, 0), view_list, seq_type_list, label_list
+        return np.concatenate(feature_list, 0), view_list, seq_type_list, label_list
 
     def save(self):
         os.makedirs(osp.join('checkpoint', self.model_name), exist_ok=True)

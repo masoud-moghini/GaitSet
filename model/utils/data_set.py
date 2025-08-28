@@ -55,12 +55,12 @@ class DataSet(tordata.Dataset):
     def __getitem__(self, index):
         # pose sequence sampling
         if not self.cache:
-            data = [(_path,self.__loader__(_path)) for _path in self.seq_dir[index]]
-            frame_set = [set(feature.coords['frame'].values.tolist()) for (_,feature) in data]
+            data = [self.__loader__(_path) for _path in self.seq_dir[index]]
+            frame_set = [set(feature.coords['frame'].values.tolist()) for feature in data]
             frame_set = list(set.intersection(*frame_set))
         elif self.data[index] is None:
-            data = [(_path,self.__loader__(_path)) for _path in self.seq_dir[index]]
-            frame_set = [set(feature.coords['frame'].values.tolist()) for (_,feature) in data]
+            data = [self.__loader__(_path) for _path in self.seq_dir[index]]
+            frame_set = [set(feature.coords['frame'].values.tolist()) for feature in data]
             frame_set = list(set.intersection(*frame_set))
             self.data[index] = data
             self.frame_set[index] = frame_set
@@ -79,8 +79,12 @@ class DataSet(tordata.Dataset):
                       for _img_path in imgs
                       if osp.isfile(osp.join(flie_path, _img_path))]
         num_list = list(range(len(frame_list)))
+        path_list= [osp.join(flie_path, _img_path)
+                      for _img_path in imgs
+                      if osp.isfile(osp.join(flie_path, _img_path))]
         data_dict = xr.DataArray(
             frame_list,
+            path_list = path_list,
             coords={'frame': num_list},
             dims=['frame', 'img_y', 'img_x'],
         )
