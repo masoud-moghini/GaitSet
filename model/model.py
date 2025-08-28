@@ -88,7 +88,7 @@ class Model:
             frame_set = frame_sets[index]
             if self.sample_type == 'random':
                 frame_id_list = random.choices(frame_set, k=self.frame_num)
-                _ = [feature.loc[frame_id_list].values for feature in sample]
+                _ = [feature.loc[frame_id_list].values for (_,feature) in sample]
             else:
                 _ = [feature.values for feature in sample]
             return _
