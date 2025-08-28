@@ -82,7 +82,7 @@ class Model:
         seq_type = [batch[i][3] for i in range(batch_size)]
         label = [batch[i][4] for i in range(batch_size)]
         paths = list(map(lambda x: x[0][1] , seqs))
-        batch = [seqs, view, seq_type, label,paths, None]
+        batch = [seqs, view, seq_type, label, None]
 
         def select_frame(index):
             sample = seqs[index]
