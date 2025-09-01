@@ -28,6 +28,7 @@ def evaluation(data, config, probe_idx=None, top_k=5):
     label   = np.asarray(label)
     sample_num = feature.shape[0]
     print(len(feature))
+    print(f'sample_num = {sample_num}')
     # Quick helper: full original evaluation
     def full_eval():
         dataset = config['dataset'].split('-')[0]
@@ -86,8 +87,8 @@ def evaluation(data, config, probe_idx=None, top_k=5):
             sorted_idx = list_of_feature_distances.sort(dim=1)[1].cpu().numpy().ravel()                # [N-1]
             index_of_first_predict = sorted_idx[0]
             predicted_label = label[index_of_first_predict]
-            if (py == predicted_label):
-                print(f'path = {path[i]} py = {py}, predicted_label = {predicted_label}, correct = {py == predicted_label}')
+            if (py != predicted_label):
+                print(f'py = {py}, predicted_label = {predicted_label}, correct = {py == predicted_label}')
     # ---- Per-index rank-k computation ----
     # Build probe sample
     px = feature[probe_idx:probe_idx+1]  # [1, D]
