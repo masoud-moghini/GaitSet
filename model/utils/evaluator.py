@@ -21,7 +21,7 @@ def evaluation(data, config, probe_idx=None, top_k=5):
         against a gallery of all other samples.
     """
     # Unpack inputs
-    path,feature, view, seq_type, label = data
+    feature, view, seq_type, label, path = data
     path = path.reshape(-1)
     feature = np.asarray(feature)
     label   = np.asarray(label)

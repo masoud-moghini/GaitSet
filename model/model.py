@@ -82,7 +82,7 @@ class Model:
         seq_type = [batch[i][3] for i in range(batch_size)]
         label = [batch[i][4] for i in range(batch_size)]
         paths = list(map(lambda x: x[0][1] , seqs))
-        batch = [seqs, view, seq_type, label, None]
+        batch = [seqs, view, seq_type, label, None, paths]
 
         def select_frame(index):
             sample = seqs[index]
@@ -237,7 +237,7 @@ class Model:
         label_list = list()
 
         for i, x in enumerate(data_loader):
-            seq, view, seq_type, label, batch_frame = x
+            seq, view, seq_type, label, batch_frame, paths = x
             for j in range(len(seq)):
                 seq[j] = self.np2var(seq[j]).float()
             if batch_frame is not None:
@@ -250,7 +250,7 @@ class Model:
             view_list += view
             seq_type_list += seq_type
             label_list += label
-        return np.concatenate(feature_list, 0), view_list, seq_type_list, label_list
+        return np.concatenate(feature_list, 0), view_list, seq_type_list, label_list,paths
 
     def save(self):
         os.makedirs(osp.join('checkpoint', self.model_name), exist_ok=True)
