@@ -22,6 +22,7 @@ def evaluation(data, config, probe_idx=None, top_k=5):
     """
     # Unpack inputs
     feature, view, seq_type, label, path = data
+    print(f'paths {path}')
     path = path.reshape(-1)
     feature = np.asarray(feature)
     label   = np.asarray(label)
