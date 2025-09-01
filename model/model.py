@@ -223,8 +223,6 @@ class Model:
         self.encoder.eval()
         source = self.test_source if flag == 'test' else self.train_source
         self.sample_type = 'all'
-        print('printing source [5] for sample')
-        print(source[5])
         data_loader = tordata.DataLoader(
             dataset=source,
             batch_size=batch_size,
