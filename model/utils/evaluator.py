@@ -22,13 +22,11 @@ def evaluation(data, config, probe_idx=None, top_k=5):
     """
     # Unpack inputs
     feature, view, seq_type, label, path = data
-    print(f'feature length {len(feature)}')
-    path = np.array(path).reshape(-1)
     feature = np.asarray(feature)
     label   = np.asarray(label)
+    path = np.asarray(path)
     sample_num = feature.shape[0]
-    print(len(feature))
-    print(f'sample_num = {sample_num}')
+    print(f'feature.shape = {feature.shape},label.shape = {label.shape}, path.shape = {path.shape}')
     # Quick helper: full original evaluation
     def full_eval():
         dataset = config['dataset'].split('-')[0]
