@@ -23,7 +23,7 @@ def evaluation(data, config, probe_idx=None, top_k=5):
     # Unpack inputs
     feature, view, seq_type, label, path = data
     print(f'paths {path}')
-    path = path.reshape(-1)
+    path = np.array(path).reshape(-1)
     feature = np.asarray(feature)
     label   = np.asarray(label)
     sample_num = feature.shape[0]
@@ -81,7 +81,7 @@ def evaluation(data, config, probe_idx=None, top_k=5):
         for i in range(-probe_idx):
             px = feature[i:i+1]
             py = label[i]
-            other_probes = np.arrange(sample_num) != i
+            other_probes = np.arange(sample_num) != i
             gx = feature[other_probes]
             list_of_feature_distances = cuda_dist(px, gx)
             sorted_idx = list_of_feature_distances.sort(dim=1)[1].cpu().numpy().ravel()                # [N-1]
