@@ -233,9 +233,10 @@ class Model:
         view_list = list()
         seq_type_list = list()
         label_list = list()
+        path_list = list()
 
         for i, x in enumerate(data_loader):
-            seq, view, seq_type, label, batch_frame, paths = x
+            seq, view, seq_type, label, batch_frame, path = x
             for j in range(len(seq)):
                 seq[j] = self.np2var(seq[j]).float()
             if batch_frame is not None:
@@ -248,7 +249,8 @@ class Model:
             view_list += view
             seq_type_list += seq_type
             label_list += label
-        return np.concatenate(feature_list, 0), view_list, seq_type_list, label_list,paths
+            path_list += path
+        return np.concatenate(feature_list, 0), view_list, seq_type_list, label_list,path_list
 
     def save(self):
         os.makedirs(osp.join('checkpoint', self.model_name), exist_ok=True)

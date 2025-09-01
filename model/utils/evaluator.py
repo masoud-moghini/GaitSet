@@ -56,8 +56,13 @@ def evaluation(data, config, probe_idx=None, top_k=5):
                         pmask = np.isin(seq_type, probe_seq)  & (view == probe_view)
                         gallery_x = feature[gmask]
                         gallery_y = label[gmask]
+                        gallery_path = path[gmask]
+                        print(f'gmask :{gmask} and gallery_path:{gallery_path}')
+                        
                         probe_x   = feature[pmask]
                         probe_y   = label[pmask]
+                        probe_path = path[pmask]
+                        print(f'pmask :{pmask} and probe_path:{probe_path}')
 
                         # Compute distances on GPU
                         gx = torch.from_numpy(gallery_x).float().cuda()
