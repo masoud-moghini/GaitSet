@@ -55,13 +55,16 @@ def evaluation(data, config, probe_idx=None, top_k=5):
                         gallery_x = feature[gmask]
                         gallery_y = label[gmask]
                         gallery_path = path[gmask]
-                        print(f'gmask :{gmask} and gallery_path:{gallery_path}')
                         
                         probe_x   = feature[pmask]
                         probe_y   = label[pmask]
                         probe_path = path[pmask]
-                        print(f'pmask :{pmask} and probe_path:{probe_path}')
 
+                        print(f'=====PRINT VALUES OF EVALUATION======')
+                        print(f'view:{view}')
+                        print(f'p is :{p}\nseq_type:{seq_type}\ngallary_seq:{gallery_seq}\tprobe_seq:{probe_seq}')
+                        print(f'probe_view:{probe_view}\ngallary_view:{gallery_view}')
+                        print(f'probe_x:{probe_x}\nprobe_y:{probe_y}')
                         # Compute distances on GPU
                         gx = torch.from_numpy(gallery_x).float().cuda()
                         px = torch.from_numpy(probe_x).float().cuda()
