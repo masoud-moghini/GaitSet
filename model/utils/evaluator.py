@@ -74,6 +74,7 @@ def evaluation(data, config, probe_idx=None, top_k=1):
                         # rank-k accuracy
                         hits = (probe_y[:,None] == gallery_y[idx[:, :num_rank]])
                         print(f'hits = {hits}')
+                        print(f'path matrix ={gallery_path[idx[:, :num_rank]]}')
                         cum  = np.cumsum(hits, axis=1) > 0
                         acc[p, v1, v2, :] = np.round(
                             cum.sum(axis=0) * 100 / probe_x.shape[0], 2
