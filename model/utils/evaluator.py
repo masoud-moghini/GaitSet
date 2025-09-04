@@ -65,12 +65,14 @@ def evaluation(data, config, probe_idx=None, top_k=5):
                         print(f'p is :{p}\nseq_type:{seq_type}\ngallary_seq:{gallery_seq}\tprobe_seq:{probe_seq}')
                         print(f'probe_view:{probe_view}\ngallary_view:{gallery_view}')
                         print(f'probe_x:{probe_x}\nprobe_y:{probe_y}')
+                        print(f'probe_path:{probe_path}\ngallary_path:{gallery_path}')
                         # Compute distances on GPU
                         dist = cuda_dist(probe_x, gallery_x)                              # [P, G]
                         idx  = dist.sort(dim=1)[1].cpu().numpy()              # [P, G]
 
                         # rank-k accuracy
                         hits = (probe_y[:,None] == gallery_y[idx[:, :num_rank]])
+                        print(f'hits = {hits}')
                         cum  = np.cumsum(hits, axis=1) > 0
                         acc[p, v1, v2, :] = np.round(
                             cum.sum(axis=0) * 100 / probe_x.shape[0], 2
