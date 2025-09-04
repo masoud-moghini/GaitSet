@@ -65,7 +65,8 @@ def evaluation(data, config, probe_idx=None, top_k=1):
                         print(f'p is :{p}\nseq_type:{seq_type}\ngallary_seq:{gallery_seq}\tprobe_seq:{probe_seq}')
                         print(f'probe_view:{probe_view}\ngallary_view:{gallery_view}')
                         print(f'probe_x:{probe_x}\nprobe_y:{probe_y}')
-                        print(f'probe_path:{probe_path}\ngallary_path:{gallery_path}')
+                        print(f'num_rank:{num_rank}')
+                        # print(f'probe_path:{probe_path}\ngallary_path:{gallery_path}')
                         # Compute distances on GPU
                         dist = cuda_dist(probe_x, gallery_x)                              # [P, G]
                         idx  = dist.sort(dim=1)[1].cpu().numpy()              # [P, G]
