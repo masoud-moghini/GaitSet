@@ -50,8 +50,8 @@ def evaluation(data, config, probe_idx=None, top_k=5):
             for gallery_seq in gallery_seq_dict[dataset]:
                 for v1, probe_view in enumerate(view_list):
                     for v2, gallery_view in enumerate(view_list):
-                        gmask = np.isin(seq_type, gallery_seq) & (view == gallery_view)
-                        pmask = np.isin(seq_type, probe_seq)  & (view == probe_view)
+                        gmask = np.isin(seq_type, gallery_seq) & np.isin(view, [gallery_view])
+                        pmask = np.isin(seq_type, probe_seq)  & np.isin(view , [probe_view])
                         gallery_x = feature[gmask]
                         gallery_y = label[gmask]
                         gallery_path = path[gmask]
