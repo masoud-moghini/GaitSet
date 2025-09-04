@@ -24,7 +24,7 @@ def evaluation(data, config, probe_idx=None, top_k=5):
     feature, view, seq_type, label, path = data
     feature = np.asarray(feature)
     label   = np.asarray(label)
-    path = np.asarray(path)
+    path = np.asarray(path,dtype=object)
     sample_num = feature.shape[0]
     print(f'feature.shape = {feature.shape},label.shape = {label.shape}, path.shape = {path.shape}')
     # Quick helper: full original evaluation
@@ -66,9 +66,7 @@ def evaluation(data, config, probe_idx=None, top_k=5):
                         print(f'probe_view:{probe_view}\ngallary_view:{gallery_view}')
                         print(f'probe_x:{probe_x}\nprobe_y:{probe_y}')
                         # Compute distances on GPU
-                        gx = torch.from_numpy(gallery_x).float().cuda()
-                        px = torch.from_numpy(probe_x).float().cuda()
-                        dist = cuda_dist(px, gx)                              # [P, G]
+                        dist = cuda_dist(probe_x, gallery_x)                              # [P, G]
                         idx  = dist.sort(dim=1)[1].cpu().numpy()              # [P, G]
 
                         # rank-k accuracy
