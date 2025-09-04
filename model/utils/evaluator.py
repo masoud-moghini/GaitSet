@@ -12,7 +12,7 @@ def cuda_dist(x, y):
     return dist
 
 
-def evaluation(data, config, probe_idx=None, top_k=5):
+def evaluation(data, config, probe_idx=None, top_k=1):
     """
     If probe_idx is None:
         run full multi-view, multi-seq rank-k evaluation as before.
