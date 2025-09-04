@@ -71,10 +71,12 @@ def evaluation(data, config, probe_idx=None, top_k=1):
                         dist = cuda_dist(probe_x, gallery_x)                              # [P, G]
                         idx  = dist.sort(dim=1)[1].cpu().numpy()              # [P, G]
 
+                        print(f'dist shape = {dist.shape}, idx shape = {idx.shape}')
                         # rank-k accuracy
                         hits = (probe_y[:,None] == gallery_y[idx[:, :num_rank]])
                         print(f'hits = {hits}')
-                        print(f'path matrix ={gallery_path[idx[:, :num_rank]]}')
+                        print(f'gallery path matrix ={gallery_path[idx[:, :num_rank]]}')
+                        print(f'probe path matrix ={probe_path[idx[:, :num_rank]]}')
                         cum  = np.cumsum(hits, axis=1) > 0
                         acc[p, v1, v2, :] = np.round(
                             cum.sum(axis=0) * 100 / probe_x.shape[0], 2
