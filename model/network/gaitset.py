@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
-
+import torch.nn.functional as F
 from .basic_blocks import SetBlock, BasicConv2d
 
 
@@ -13,12 +13,12 @@ class SetNet(nn.Module):
 
         _set_in_channels = 1
         _set_channels = [32, 64, 128]
-        self.set_layer1 = SetBlock(BasicConv2d(_set_in_channels, _set_channels[0], 5, padding=2))
-        self.set_layer2 = SetBlock(BasicConv2d(_set_channels[0], _set_channels[0], 3, padding=1), True)
-        self.set_layer3 = SetBlock(BasicConv2d(_set_channels[0], _set_channels[1], 3, padding=1))
-        self.set_layer4 = SetBlock(BasicConv2d(_set_channels[1], _set_channels[1], 3, padding=1), True)
-        self.set_layer5 = SetBlock(BasicConv2d(_set_channels[1], _set_channels[2], 3, padding=1))
-        self.set_layer6 = SetBlock(BasicConv2d(_set_channels[2], _set_channels[2], 3, padding=1))
+        self.set_layer1 = SetBlock(BasicConv2d(_set_in_channels, _set_channels[0], 5,activation_function=F.relu, padding=2),nn.AvgPool2d)
+        self.set_layer2 = SetBlock(BasicConv2d(_set_channels[0], _set_channels[0], 3,activation_function=F.leaky_relu, padding=1),nn.AvgPool2d, True)
+        self.set_layer3 = SetBlock(BasicConv2d(_set_channels[0], _set_channels[1], 3,activation_function=F.softmax ,padding=1),nn.MaxPool2d)
+        self.set_layer4 = SetBlock(BasicConv2d(_set_channels[1], _set_channels[1], 3, padding=1),nn.MaxPool2d, True)
+        self.set_layer5 = SetBlock(BasicConv2d(_set_channels[1], _set_channels[2], 3, padding=1),nn.AdaptiveMaxPool2d)
+        self.set_layer6 = SetBlock(BasicConv2d(_set_channels[2], _set_channels[2], 3, padding=1),nn.AvgPool2d)
 
         _gl_in_channels = 32
         _gl_channels = [64, 128]
